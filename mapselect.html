@@ -1,36 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Open Location by Preference</title>
+  <meta charset="UTF-8">
+  <title>Map Service Preference</title>
   <script>
-    function isMobileDevice() {
-      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    function is_mobile() {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      if (/android/i.test(userAgent)) return true;
+      if (/iPhone|iPad|iPod/i.test(userAgent)) return true;
+      if (/windows phone/i.test(userAgent)) return true;
+
+      // Touch support and screen size fallback
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth <= 800 && window.innerHeight <= 600;
+
+      return isTouchDevice && isSmallScreen;
     }
 
-    function openMapLocation(lat, lon) {
-      // Try to get preferred map from localStorage
-      let mapPref = localStorage.getItem('mapService');
+    function getMapLocationURL(lat, lon) {
+      let mapPref = localStorage.getItem('opt_mapservice');
 
-      // Fallback to cookie if not set
       if (!mapPref) {
-        const match = document.cookie.match(/(?:^|; )mapService=([^;]*)/);
+        const match = document.cookie.match(/(?:^|; )opt_mapservice=([^;]*)/);
         if (match) {
           mapPref = decodeURIComponent(match[1]);
         }
       }
 
-      // Default to Google Maps
       if (!mapPref) {
         mapPref = 'google';
       }
 
-      // If geo is preferred but not on a mobile device, fall back
-      if (mapPref === 'geo' && !isMobileDevice()) {
-        mapPref = 'google'; // fallback
+      if (mapPref === 'geo' && !is_mobile()) {
+        mapPref = 'google';
       }
 
       let url = '';
-
       switch (mapPref.toLowerCase()) {
         case 'geo':
           url = `geo:${lat},${lon}`;
@@ -44,28 +49,38 @@
           break;
       }
 
-      window.location.href = url;
+      return url;
     }
 
     function setMapPreference(service) {
-      localStorage.setItem('mapService', service);
-      document.cookie = `mapService=${encodeURIComponent(service)}; path=/`;
-      alert(`Map preference set to ${service}`);
+      localStorage.setItem('opt_mapservice', service);
+      document.cookie = `opt_mapservice=${encodeURIComponent(service)}; path=/`;
+      updateMapLink();
     }
+
+    function updateMapLink() {
+      const link = document.getElementById('mapLink');
+      const lat = -31.5;
+      const lon = 115.5;
+      link.href = getMapLocationURL(lat, lon);
+    }
+
+    window.onload = updateMapLink;
   </script>
 </head>
 <body>
-  <h1>Open Location</h1>
+  <h1>Map Service Preference</h1>
 
   <p>
-    <button onclick="openMapLocation(-31.5, 115.5)">Open Map</button>
+    <strong>Preferred map link:</strong><br>
+    <a id="mapLink" href="#" target="_blank">Open Map Location</a>
   </p>
 
   <h2>Set Preferred Map Service</h2>
   <p>
-    <button onclick="setMapPreference('geo')">Prefer geo: (mobile only) - Will use default on mobile device</button>
-    <button onclick="setMapPreference('google')">Prefer Google Maps</button>
-    <button onclick="setMapPreference('apple')">Prefer Apple Maps</button>
+    <button onclick="setMapPreference('geo')">Use geo: (mobile only)</button>
+    <button onclick="setMapPreference('google')">Use Google Maps</button>
+    <button onclick="setMapPreference('apple')">Use Apple Maps</button>
   </p>
 </body>
 </html>
