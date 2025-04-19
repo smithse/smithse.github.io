@@ -5,6 +5,7 @@
   <title>Map Service Preference</title>
   <script>
     function is_mobile() {
+      //This function would have to be built on as it's a quick and dirty one!!!
       const userAgent = navigator.userAgent || navigator.vendor || window.opera;
       if (/android/i.test(userAgent)) return true;
       if (/iPhone|iPad|iPod/i.test(userAgent)) return true;
@@ -17,6 +18,7 @@
       return isTouchDevice && isSmallScreen;
     }
 
+    //Function that returns the url for the preferred map provider.
     function getMapLocationURL(lat, lon) {
       let mapPref = localStorage.getItem('opt_mapservice');
 
@@ -36,6 +38,7 @@
       }
 
       let url = '';
+      //There could be different apps/map providers that could be added or supported here.
       switch (mapPref.toLowerCase()) {
         case 'geo':
           url = `geo:${lat},${lon}`;
@@ -48,7 +51,7 @@
           url = `https://www.google.com/maps?q=${lat},${lon}`;
           break;
       }
-
+      
       return url;
     }
 
