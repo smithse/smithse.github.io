@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Open Location by Preference</title>
+  <script>
+    function isMobileDevice() {
+      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    function openMapLocation(lat, lon) {
+      // Try to get preferred map from localStorage
+      let mapPref = localStorage.getItem('mapService');
+
+      // Fallback to cookie if not set
+      if (!mapPref) {
+        const match = document.cookie.match(/(?:^|; )mapService=([^;]*)/);
+        if (match) {
+          mapPref = decodeURIComponent(match[1]);
+        }
+      }
+
+      // Default to Google Maps
+      if (!mapPref) {
+        mapPref = 'google';
+      }
+
+      // If geo is preferred but not on a mobile device, fall back
+      if (mapPref === 'geo' && !isMobileDevice()) {
+        mapPref = 'google'; // fallback
+      }
+
+      let url = '';
+
+      switch (mapPref.toLowerCase()) {
+        case 'geo':
+          url = `geo:${lat},${lon}`;
+          break;
+        case 'apple':
+          url = `https://maps.apple.com/?ll=${lat},${lon}`;
+          break;
+        case 'google':
+        default:
+          url = `https://www.google.com/maps?q=${lat},${lon}`;
+          break;
+      }
+
+      window.location.href = url;
+    }
+
+    function setMapPreference(service) {
+      localStorage.setItem('mapService', service);
+      document.cookie = `mapService=${encodeURIComponent(service)}; path=/`;
+      alert(`Map preference set to ${service}`);
+    }
+  </script>
+</head>
+<body>
+  <h1>Open Location</h1>
+
+  <p>
+    <button onclick="openMapLocation(37.7749, -122.4194)">Open San Francisco</button>
+  </p>
+
+  <h2>Set Preferred Map Service</h2>
+  <p>
+    <button onclick="setMapPreference('geo')">Prefer geo: (mobile only)</button>
+    <button onclick="setMapPreference('google')">Prefer Google Maps</button>
+    <button onclick="setMapPreference('apple')">Prefer Apple Maps</button>
+  </p>
+</body>
+</html>
